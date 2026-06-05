@@ -251,7 +251,7 @@ def plot_classification_correlation_heatmap(
         else:
             print(
                 f"Target '{target}' has {len(target_values)} unique values. "
-                "Target correlation sorting is most useful for binary classification."
+                "Target correlation sorting is most useful for binary classification_project."
             )
 
     categorical_cols = df_work.select_dtypes(

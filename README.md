@@ -1,8 +1,9 @@
+
 # Adult Income Classification
 
 ## Описание проекта
 
-Цель проекта — решить задачу бинарной классификации на датасете Adult Income и пройти полный классический ML pipeline в стиле реального Data Science проекта.
+Цель проекта — решить задачу бинарной классификации на датасете Adult Income и пройти полный классический ML pipeline максимально близко к реальной практике Data Science.
 
 Задача состоит в предсказании уровня дохода человека:
 
@@ -12,12 +13,13 @@
 
 по социально-демографическим и экономическим признакам: возрасту, образованию, типу занятости, профессии, семейному положению, рабочим часам, капиталу и другим характеристикам.
 
-Проект был построен не только ради получения работающей модели, но и ради отработки правильного процесса:
+Проект был построен не только ради получения работающей модели, но и ради отработки полного процесса:
 
 - EDA;
 - baseline;
 - feature engineering;
 - hyperparameter tuning;
+- финальная оценка на hold-out test set;
 - анализ feature importance;
 - контроль качества модели на нескольких метриках;
 - разделение логики между ноутбуками и `.py` файлами.
@@ -35,20 +37,15 @@ project/
 │   ├── 03_feature_engineering.ipynb
 │   ├── 04_hyperparameter_tuning.ipynb
 │   └── 05_final_model.ipynb
-├── utils/
+├── src/
 │   ├── consts.py
 │   ├── eda.py
 │   ├── baseline.py
 │   ├── feature_engineering.py
-│   └── hyperparamtuning.py
+│   ├── hyperparamtuning.py
+│   └── finalmodel.py
 └── reports/
 ```
-
-Основной архитектурный принцип проекта:
-
-> Ноутбуки должны быть тонкими, а вся логика должна быть вынесена в `.py` файлы.
-
-В ноутбуках остаются загрузка данных, вызовы функций, визуализация и выводы.
 
 ## Датасет
 
@@ -214,7 +211,7 @@ GradientBoostingClassifier
 Проверенные эксперименты:
 
 - baseline `GradientBoostingClassifier`;
-- замена `?` на моду;
+- замена `?` на моду через `SimpleImputer(strategy="most_frequent")` внутри pipeline;
 - удаление `fnlwgt`;
 - использование только `education`;
 - использование только `educational-num`;
@@ -324,6 +321,71 @@ tuned GradientBoostingClassifier:           f1_macro около 0.8050
 
 Полученное улучшение выглядит реалистичным: качество выросло умеренно, без подозрительно резкого скачка.
 
+## Финальная Модель
+
+После выбора модели, схемы feature engineering и гиперпараметров был собран финальный pipeline.
+
+Финальная модель:
+
+```text
+GradientBoostingClassifier
+```
+
+Финальная схема feature engineering:
+
+```text
+combined_without_race_and_native_country
+```
+
+Лучшие гиперпараметры:
+
+```python
+{
+    "learning_rate": 0.08,
+    "n_estimators": 200,
+    "max_depth": 3,
+    "min_samples_leaf": 20,
+}
+```
+
+Финальный pipeline был обучен на всей train-выборке и один раз оценен на отложенной test-выборке.
+
+Test set не использовался на этапах baseline, feature engineering и hyperparameter tuning. Поэтому финальные метрики отражают качество модели на данных, которые не участвовали в выборе модели и настройке гиперпараметров.
+
+Финальные метрики на hold-out test set:
+
+```text
+accuracy:         0.8720
+precision_macro: 0.8436
+recall_macro:    0.7866
+f1_macro:        0.8092
+roc_auc:         0.9252
+```
+
+Для сравнения, лучший результат на cross-validation после tuning составлял:
+
+```text
+CV f1_macro: около 0.8050
+```
+
+Финальный результат на test set оказался близким к CV-оценке, что говорит о стабильности модели и отсутствии заметного переобучения.
+
+По `classification_report` видно, что модель лучше определяет класс `<=50K`, чем класс `>50K`.
+
+```text
+<=50K:
+precision 0.89
+recall    0.95
+f1-score  0.92
+
+>50K:
+precision 0.80
+recall    0.62
+f1-score  0.70
+```
+
+Модель достаточно уверенно находит людей с доходом `<=50K`, но часть объектов класса `>50K` ошибочно относит к более низкому доходу. Такое поведение ожидаемо, так как в данных есть дисбаланс классов: класс `<=50K` встречается значительно чаще.
+
 ## Итоговый Результат
 
 В проекте был пройден полный ML pipeline для задачи бинарной классификации:
@@ -336,7 +398,8 @@ tuned GradientBoostingClassifier:           f1_macro около 0.8050
 6. Проверены feature engineering гипотезы.
 7. Выбрана схема признаков для tuning.
 8. Выполнен hyperparameter tuning.
-9. Получен итоговый tuned pipeline.
+9. Собран финальный tuned pipeline.
+10. Проведена финальная оценка на hold-out test set.
 
 Итоговая выбранная модель:
 
@@ -350,10 +413,20 @@ GradientBoostingClassifier
 combined_without_race_and_native_country
 ```
 
-Итоговое качество на cross-validation:
+Лучшее качество на cross-validation после tuning:
 
 ```text
 f1_macro около 0.8050
+```
+
+Финальное качество на hold-out test set:
+
+```text
+accuracy:         0.8720
+precision_macro: 0.8436
+recall_macro:    0.7866
+f1_macro:        0.8092
+roc_auc:         0.9252
 ```
 
 ## Главные Выводы
@@ -367,18 +440,6 @@ f1_macro около 0.8050
 - `race` и `native-country` можно удалить без потери качества.
 - Feature engineering дал минимальное улучшение.
 - Основной прирост качества был получен на этапе hyperparameter tuning.
+- Финальная оценка на hold-out test set показала `f1_macro = 0.8092` и `roc_auc = 0.9252`.
+- Модель лучше определяет класс `<=50K`, чем класс `>50K`, что связано с дисбалансом классов.
 
-## Что Можно Улучшить Дальше
-
-В рамках учебного проекта задача считается решенной. Возможные направления развития:
-
-- провести финальную оценку на test set;
-- построить confusion matrix;
-- построить classification report;
-- отдельно проанализировать precision и recall для класса `>50K`;
-- подобрать threshold классификации;
-- сравнить ROC curve и PR curve;
-- попробовать `HistGradientBoostingClassifier`;
-- сравнить с LightGBM или XGBoost;
-- добавить сохранение финального pipeline через `joblib`;
-- провести отдельный fairness-анализ чувствительных признаков.

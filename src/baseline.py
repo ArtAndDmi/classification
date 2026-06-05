@@ -1,4 +1,4 @@
-"""Baseline models for the Adult Income classification project."""
+"""Baseline models for the Adult Income classification_project."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def make_cv(
         shuffle: bool = True,
         random_state: int = RANDOM_STATE,
 ) -> StratifiedKFold:
-    """Create cross-validation splitter for classification."""
+    """Create cross-validation splitter for classification_project."""
 
     return StratifiedKFold(
         n_splits=n_splits,
@@ -162,7 +162,7 @@ def run_baseline_cv(
     cv: StratifiedKFold | None = None,
     n_jobs: int = N_JOBS,
 ) -> pd.DataFrame:
-    """Run baseline cross-validation for classification models."""
+    """Run baseline cross-validation for classification_project models."""
 
     cv = cv or make_cv()
 

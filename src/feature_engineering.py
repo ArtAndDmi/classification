@@ -1,4 +1,4 @@
-"""Feature engineering experiments for the Adult Income classification project."""
+"""Feature engineering experiments for the Adult Income classification_project project."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def make_cv(
     shuffle: bool = True,
     random_state: int = RANDOM_STATE,
 ) -> StratifiedKFold:
-    """Create cross-validation splitter for classification."""
+    """Create cross-validation splitter for classification_project."""
 
     return StratifiedKFold(
         n_splits=n_splits,
@@ -59,7 +59,7 @@ def make_one_hot_encoder() -> OneHotEncoder:
 
 
 def make_scoring() -> dict:
-    """Create scoring dictionary for classification experiments."""
+    """Create scoring dictionary for classification_project experiments."""
 
     return {
         "accuracy": "accuracy",
@@ -224,6 +224,7 @@ def make_preprocessor(
 
     categorical_transformer = Pipeline(
         steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
             ("onehot", make_one_hot_encoder()),
         ]
     )
@@ -283,10 +284,10 @@ def make_feature_engineering_experiments(
         ),
         FeatureEngineeringExperiment(
             name="question_marks_to_mode",
-            description="Replace '?' markers with the most frequent category in each categorical column.",
+            description="Replace '?' markers with NaN and impute categorical missing values with most frequent category inside pipeline.",
             estimator=make_gb_pipeline(
                 X_sample=X_train,
-                transformer=make_transformer(fill_question_marks_with_mode),
+                transformer=make_transformer(replace_question_marks_with_nan),
             ),
         ),
         FeatureEngineeringExperiment(

@@ -1,4 +1,4 @@
-"""Hyperparameter tuning for the Adult Income classification project."""
+"""Hyperparameter tuning for the Adult Income classification_project project."""
 
 from __future__ import annotations
 
